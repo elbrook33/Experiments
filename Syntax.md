@@ -1,5 +1,5 @@
 
-parse(Template):
+parse(Template)
 ===============
 	» Template [text]
 	» Header [text]
@@ -10,27 +10,27 @@ parse(Template):
 			Capture » NextHeader [text]
 			After » Remainder [text]
 	
-		Panel.parse: Header » Tree.add:
-		Remainder.parse(Template): NextHeader » Tree.join:
+		Panel.parse: Header » Tree.add
+		Remainder.parse(Template): Header=NextHeader » Tree.join
 
 
-parse(Panel):
+parse(Panel)
 ============
 	» Panel [text]
 	» Header [text]
 	« Tree [list]
 
-		Header.parse: » Tree.metadata.join:
-	
+		Header.parse: » Tree.metadata.join
+
 		Panel.splitAt: “\n”
 			Before » Line [text]
 			After » Remainder [text]
 	
-		Line.parse: » Tree.add:
-		Remainder.parse(Panel): » Tree.join:
+		Line.parse: » Tree.add
+		Remainder.parse(Panel) » Tree.join
 
 
-parse(Header):
+parse(Header)
 =============
 	» Header [text]
 	« Options [list]
@@ -39,11 +39,11 @@ parse(Header):
 			Before » Option [text]
 			After » Remainder [text]
 	
-		Option.parse: » Options.add:
-		Remainder.parse(Header): » Options.join:
+		Option.parse » Options.add
+		Remainder.parse(Header) » Options.join
 
 
-parse(Option):
+parse(Option)
 =============
 	» Option [text]
 	« Setting [text]
@@ -57,7 +57,7 @@ Create a key-value pair from “key=value” text.
 		Key=Value » Setting
 
 
-parse(Line):
+parse(Line)
 ===========
 	» Line [text]
 	« Tree [list]
@@ -68,28 +68,28 @@ First parse line options at the end	-- separated like this (after a tab-stop).
 			Before » Content [text]
 			After » Header [text]
 	
-		Header.parse: » Tree.metadata.join:
+		Header.parse » Tree.metadata.join
 
 Next, parse brackets. No nesting or overlapping.
 
 Step 1: “Be fore [Inn er] After” → {“Be”, “fore”}, “Inn er] After”
 
 		Content.splitAt: “[” or “_” or “**”
-			Before » splitWords: Label=“Word” » Tree.join:
+			Before » splitWords: Label=“Word” » Tree.join
 			Split » Bracket [text]
 			After » Tail [text]
 
 Step 2: {“Be”, “fore”}, “Inn er ] After” → {“Be”, “fore”, Variable=“Inn er”} + {After.parsed}
 
-		Tail.splitAt: Bracket.inverse:
+		Tail.splitAt: Bracket.inverse
 			Before » Inner [text]
 			After » Remainder [text]
 		
-		Inner.parse: Bracket » Tree.join:
-		Remainder.parse(Line): » Tree.join:
+		Inner.parse: Bracket » Tree.join
+		Remainder.parse(Line) » Tree.join
 
 
-label(Bracket):
+label(Bracket)
 ==============
 	» Bracket [text]
 	« Label [text]
@@ -99,7 +99,7 @@ label(Bracket):
 		(Bracket == “**”) ⇒ “Bold”
 
 
-inverse(Bracket):
+inverse(Bracket)
 ================
 	» Bracket [text]
 	« Inverse [text]
@@ -109,7 +109,7 @@ inverse(Bracket):
 		(Bracket == “**”) ⇒ “**”
 
 
-parse(Inner):
+parse(Inner)
 ============
 	» Inner [text]
 	» Bracket [text]
@@ -117,12 +117,12 @@ parse(Inner):
 
 Italics and bold text are split into words; variables aren’t.
 
-		(Bracket == “[”) ⇒ {Bracket.label:=Inner}
-		(Bracket == “_”) ⇒ splitWords: {Block=Inner, Label=Bracket.label:}
-		(Bracket == “**”) ⇒ splitWords: {Block=Inner, Label=Bracket.label:}
+		(Bracket == “[”) ⇒ {Bracket.label=Inner}
+		(Bracket == “_”) ⇒ Inner.splitWords: Label=Bracket.label
+		(Bracket == “**”) ⇒ Inner.splitWords: Label=Bracket.label
 
 
-splitWords:
+splitWords
 ==========
 	» Block [text]
 	» Label [text]
@@ -132,5 +132,5 @@ splitWords:
 			Before » Word [text]
 			After » After [text]
 	
-		Label=Word » Words.add:
-		splitWords: {Block=After, Label} » Words.join:
+		Label=Word » Words.add
+		After.splitWords: Label » Words.join
