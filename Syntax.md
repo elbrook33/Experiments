@@ -24,36 +24,31 @@ parse (Panel)
 			» Tree.metadata.join
 		
 		Panel.splitOnce: Line={“{FOR} {…}”, “{IF} {…}”}
+			Found » StartFound [yes/no]
 			Before » OuterPre [text]
 			Capture » {BlockLabel [text], BlockHeader [text]}
 			After » InnerUnclosed [text]
-			Found » StartFound [yes/no]
 
 		parse: Panel=InnerUnclosed
 			Tree » InnerAParsed [list]
 			Remainder » InnerBUnclosed [text]
 
 		InnerBUnclosed.splitOnce: Line=BlockLabel.inverse
+			Found » EndFound [yes/no]
 			Before » InnerBUnparsed [text]
 			After » OuterPost [text]
-			Found » EndFound [yes/no]
 
 
 		either:
-
 			o StartFound && EndFound ⇒ (
-
 				OuterPre.split: “\n”
 					» map: (Line → Line.parse)
 						» Tree.join
-
 				BracketLabel=(join:
 					— InnerAParsed
 					— InnerBUnparsed.split: “\n” » map: Line → Line.parse)
 						» Tree.add
-
 				OuterPost » Remainder)
-
 			o otherwise ⇒
 				Panel » Remainder
 
@@ -185,4 +180,6 @@ mergeWith (Par)
 	« Merged [list]
 
 		either:
-			o Par.key == “Par”
+			o Par.key == “Par”	⇒
+			o Par.key == “FOR”	⇒
+			o Par.key == “IF”	⇒
