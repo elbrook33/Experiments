@@ -65,7 +65,7 @@ parse (Header)
 	« Options [list]
 
 		Header.split: “, ”
-			» map: {Option → Option.parse}
+			» map: (Option → Option.parse)
 				» Options
 
 
@@ -133,7 +133,7 @@ inverse (Bracket)
 			o Bracket == “**”	⇒ “**”
 
 
-parse (Inner)
+parse {Inner, Bracket}
 =====
 	» Inner [text]
 	» Bracket [text]
