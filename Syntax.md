@@ -69,6 +69,7 @@ First parse line options at the end	-- separated like this
 Next, parse brackets. No nesting or overlapping.
 
 Step 1: “Be fore [ Inner ] After” → { “Be”, “fore” }, “Inn er ] After”
+
 	Content.splitAt: “[” or “_” or “**”
 		Before » splitWords: { Label = “Word” }
 			» Tree.join:
@@ -76,6 +77,7 @@ Step 1: “Be fore [ Inner ] After” → { “Be”, “fore” }, “Inn er ] 
 		After » Tail [text]
 
 Step 2: { “Be”, “fore” }, “Inn er ] After” → { “Be”, “fore”, Variable = “Inn er” } + { After.parsed }
+
 	Tail.splitAt: Bracket.inverse:
 		Before » Inner [text]
 		After » Remainder [text]
