@@ -1,66 +1,91 @@
-
-parse(Template)
-===============
+﻿
+parse (Template)
+=====
 	» Template [text]
 	» Header [text]
 	« Tree [list]
 
-		Template.splitAt: “PANEL {…}\n”
-			Before » Panel [text]
-			Capture » NextHeader [text]
-			After » Remainder [text]
-	
-		Panel.parse: Header » Tree.add
-		Remainder.parse(Template): Header=NextHeader » Tree.join
+		Template.split: Line=“PANEL {…}”
+			» map: (Panel → Panel.parse)
+				» Temp [list]
+		
+		Temp.map: ({Tree [list], Remainder [text]} →
+			Remainder.split: “\n” » map: (Line → Line.parse) » Tree.join)
+				» Tree
 
 
-parse(Panel)
-============
+parse (Panel)
+=====
 	» Panel [text]
-	» Header [text]
 	« Tree [list]
+	« Remainder [text]
 
-		Header.parse: » Tree.metadata.join
+		parse: Header=Panel.metadata.“Splitter-after”.metadata.“Capture”
+			» Tree.metadata.join
+		
+		Panel.splitOnce: Line={“{FOR} {…}”, “{IF} {…}”}
+			Before » OuterPre [text]
+			Capture » {BlockLabel [text], BlockHeader [text]}
+			After » InnerUnclosed [text]
+			Found » StartFound [yes/no]
 
-		Panel.splitAt: “\n”
-			Before » Line [text]
-			After » Remainder [text]
-	
-		Line.parse: » Tree.add
-		Remainder.parse(Panel) » Tree.join
+		parse: Panel=InnerUnclosed
+			Tree » InnerAParsed [list]
+			Remainder » InnerBUnclosed [text]
+
+		InnerBUnclosed.splitOnce: Line=BlockLabel.inverse
+			Before » InnerBUnparsed [text]
+			After » OuterPost [text]
+			Found » EndFound [yes/no]
 
 
-parse(Header)
-=============
+		either:
+
+			o StartFound && EndFound ⇒ (
+
+				OuterPre.split: “\n”
+					» map: (Line → Line.parse)
+						» Tree.join
+
+				BracketLabel=(join:
+					— InnerAParsed
+					— InnerBUnparsed.split: “\n” » map: Line → Line.parse)
+						» Tree.add
+
+				OuterPost » Remainder)
+
+			o otherwise ⇒
+				Panel » Remainder
+
+
+parse (Header)
+=====
 	» Header [text]
 	« Options [list]
 
-		Header.splitAt: “, ”
-			Before » Option [text]
-			After » Remainder [text]
-	
-		Option.parse » Options.add
-		Remainder.parse(Header) » Options.join
+		Header.split: “, ”
+			» map: {Option → Option.parse}
+				» Options
 
 
-parse(Option)
-=============
+parse (Option)
+=====
 	» Option [text]
 	« Setting [text]
 
 Create a key-value pair from “key=value” text.
 
-		Option.splitAt: ”=”
+		Option.splitOnce: ”=”
 			Before » Key [text]
 			After » Value [text]
 	
 		Key=Value » Setting
 
 
-parse(Line)
-===========
+parse (Line)
+=====
 	» Line [text]
-	« Tree [list]
+	« Tree [list “Par”]
 
 First parse line options at the end	-- separated like this (after a tab-stop).
 
@@ -72,65 +97,92 @@ First parse line options at the end	-- separated like this (after a tab-stop).
 
 Next, parse brackets. No nesting or overlapping.
 
-Step 1: “Be fore [Inn er] After” → {“Be”, “fore”}, “Inn er] After”
-
 		Content.splitAt: “[” or “_” or “**”
 			Before » splitWords: Label=“Word” » Tree.join
 			Split » Bracket [text]
 			After » Tail [text]
 
-Step 2: {“Be”, “fore”}, “Inn er ] After” → {“Be”, “fore”, Variable=“Inn er”} + {After.parsed}
-
 		Tail.splitAt: Bracket.inverse
 			Before » Inner [text]
 			After » Remainder [text]
 		
-		Inner.parse: Bracket » Tree.join
-		Remainder.parse(Line) » Tree.join
+		parse: {Inner, Bracket} » Tree.join
+		parse: Line=Remainder » Tree.join
 
 
-label(Bracket)
-==============
+label (Bracket)
+=====
 	» Bracket [text]
 	« Label [text]
 
-		(Bracket == “[”) ⇒ “Variable”
-		(Bracket == “_”) ⇒ “Italics”
-		(Bracket == “**”) ⇒ “Bold”
+		either:
+			o Bracket == “[”	⇒ “Variable”
+			o Bracket == “_”	⇒ “Italics”
+			o Bracket == “**”	⇒ “Bold”
 
 
-inverse(Bracket)
-================
+inverse (Bracket)
+=======
 	» Bracket [text]
 	« Inverse [text]
 
-		(Bracket == “[”) ⇒ “]”
-		(Bracket == “_”) ⇒ “_”
-		(Bracket == “**”) ⇒ “**”
+		either:
+			o Bracket == “[”	⇒ “]”
+			o Bracket == “_”	⇒ “_”
+			o Bracket == “**”	⇒ “**”
 
 
-parse(Inner)
-============
+parse (Inner)
+=====
 	» Inner [text]
 	» Bracket [text]
 	« Result [list]
 
 Italics and bold text are split into words; variables aren’t.
 
-		(Bracket == “[”) ⇒ {Bracket.label=Inner}
-		(Bracket == “_”) ⇒ Inner.splitWords: Label=Bracket.label
-		(Bracket == “**”) ⇒ Inner.splitWords: Label=Bracket.label
+		either:
+			o Bracket == “[”	⇒ {Bracket.label=Inner}
+			o Bracket == “_”	⇒ Inner.splitWords: Label=Bracket.label
+			o Bracket == “**”	⇒ Inner.splitWords: Label=Bracket.label
 
 
-splitWords
+splitWords [text]
 ==========
 	» Block [text]
 	» Label [text]
 	« Words [list]
 
-		Block.splitAt: “ ”
-			Before » Word [text]
-			After » After [text]
-	
-		Label=Word » Words.add
-		After.splitWords: Label » Words.join
+		Block.split: “ ”
+			» map: {Word → Label=Word}
+				» Words
+
+
+---
+
+
+mergeWith (Template)
+=========
+	» Template [list]
+	» Data [list]
+	« Doc [list]
+
+		Template.map: {Panel → Panel.mergeWith: Data}
+			» Doc
+
+mergeWith (Panel)
+=========
+	» Panel [list]
+	» Data [list]
+	« Merged [list]
+
+		Panel.map: {Par → Par.mergeWith: Data}
+			» Merged
+
+mergeWith (Par)
+=========
+	» Par [list]
+	» Data [list]
+	« Merged [list]
+
+		either:
+			o Par.key == “Par”
