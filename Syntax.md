@@ -1,8 +1,8 @@
 
 parse(Template):
 =============
-» Template [text]
-« Tree [list: “template”]
+» Template [text]	
+« Tree [list: “template”]	
 
 	Template.splitAt: “PANEL {…}\n”
 		Before » Panel [text]
@@ -15,9 +15,9 @@ parse(Template):
 
 parse(Panel):
 ==========
-» Panel [text]
-» Header [text]
-« Tree [list: “panel”]
+» Panel [text]	
+» Header [text]	
+« Tree [list: “panel”]	
 
 	Header.parse: » Tree.metadata.join:
 
@@ -71,8 +71,7 @@ Next, parse brackets. No nesting or overlapping.
 Step 1: “Be fore [ Inner ] After” → { “Be”, “fore” }, “Inn er ] After”
 
 	Content.splitAt: “[” or “_” or “**”
-		Before » splitWords: { Label = “Word” }
-			» Tree.join:
+		Before » splitWords: { Label = “Word” } » Tree.join:
 		Split » Bracket [text]
 		After » Tail [text]
 
