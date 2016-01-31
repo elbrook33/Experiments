@@ -5,7 +5,7 @@ parse (Template)
 	» Header [text]
 	« Tree [list]
 
-		Template.split: Line=“PANEL {…}”
+		Template.split: Line=“PANEL (…)¹”
 			» map: (Panel → Panel.parse)
 				» Temp [list]
 		
@@ -20,10 +20,10 @@ parse (Panel)
 	« Tree [list]
 	« Remainder [text]
 
-		parse: Header=Panel.metadata.“Splitter-after”.metadata.“Capture”
+		parse: Header=(Panel.metadata.“PreSplitter”.metadata.“Capture”)
 			» Tree.metadata.join
 		
-		Panel.splitOnce: Line={“{FOR} {…}”, “{IF} {…}”}
+		Panel.splitOnce: Line={“(FOR)¹ (…)²”, “(IF)¹ (…)²”}
 			Found » StartFound [yes/no]
 			Before » OuterPre [text]
 			Capture » {BlockLabel [text], BlockHeader [text]}
@@ -55,6 +55,7 @@ parse (Panel)
 
 				BracketContent » Tree.add
 				OuterPost » Remainder)
+
 			o otherwise ⇒
 				Panel » Remainder
 
@@ -90,7 +91,7 @@ parse (Line)
 
 First parse line options at the end	-- separated like this (after a tab-stop).
 
-		Line.splitAt: “\t-- ”
+		Line.splitOnce: “\t-- ”
 			Before » Content [text]
 			After » Header [text]
 	
@@ -98,12 +99,12 @@ First parse line options at the end	-- separated like this (after a tab-stop).
 
 Next, parse brackets. No nesting or overlapping.
 
-		Content.splitAt: “[” or “_” or “**”
+		Content.splitOnce: {“[”, “_”, “**”}
 			Before » splitWords: Label=“Word” » Tree.join
-			Split » Bracket [text]
+			Splitter » Bracket [text]
 			After » Tail [text]
 
-		Tail.splitAt: Bracket.inverse
+		Tail.splitOnce: Bracket.inverse
 			Before » Inner [text]
 			After » Remainder [text]
 		
@@ -170,6 +171,7 @@ mergeWith (Template)
 		Template.map: (Panel → Panel.mergeWith: Data)
 			» Doc
 
+
 mergeWith (Panel)
 =========
 	» Panel [list]
@@ -178,6 +180,7 @@ mergeWith (Panel)
 
 		Panel.map: (Par → Par.mergeWith: Data)
 			» Merged
+
 
 mergeWith (Par)
 =========
