@@ -154,7 +154,7 @@ splitWords [text]
 	« Words [list]
 
 		Block.split: “ ”
-			» map: {Word → Label=Word}
+			» map: (Word → Label=Word)
 				» Words
 
 
@@ -167,7 +167,7 @@ mergeWith (Template)
 	» Data [list]
 	« Doc [list]
 
-		Template.map: {Panel → Panel.mergeWith: Data}
+		Template.map: (Panel → Panel.mergeWith: Data)
 			» Doc
 
 mergeWith (Panel)
@@ -176,7 +176,7 @@ mergeWith (Panel)
 	» Data [list]
 	« Merged [list]
 
-		Panel.map: {Par → Par.mergeWith: Data}
+		Panel.map: (Par → Par.mergeWith: Data)
 			» Merged
 
 mergeWith (Par)
