@@ -20,7 +20,7 @@ parse (Panel)
 	« Tree [list]
 	« Remainder [text]
 
-		parse: Header=(Panel.metadata.“PreSplitter”.metadata.“Capture”)
+		parse: Header=(Panel.metadata.“SplitterPre”.metadata.“Capture”)
 			» Tree.metadata.join
 		
 		Panel.splitOnce: Line={“(FOR)¹ (…)²”, “(IF)¹ (…)²”}
