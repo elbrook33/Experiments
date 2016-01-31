@@ -5,8 +5,6 @@ parse(Template):
 	» Header [text]
 	« Tree [list]
 
-Split text at “PANEL option=value” lines.
-
 		Template.splitAt: “PANEL {…}\n”
 			Before » Panel [text]
 			Capture » NextHeader [text]
@@ -22,8 +20,6 @@ parse(Panel):
 	» Header [text]
 	« Tree [list]
 
-Split into lines and parse recursively.
-
 		Header.parse: » Tree.metadata.join:
 	
 		Panel.splitAt: “\n”
@@ -38,8 +34,6 @@ parse(Header):
 =============
 	» Header [text]
 	« Options [list]
-
-Split by commas and pass on to parse(Option).
 
 		Header.splitAt: “, ”
 			Before » Option [text]
@@ -68,7 +62,7 @@ parse(Line):
 	» Line [text]
 	« Tree [list]
 
-First parse line options at the end	-- separated like this
+First parse line options at the end	-- separated like this (after a tab-stop).
 
 		Line.splitAt: “\t-- ”
 			Before » Content [text]
