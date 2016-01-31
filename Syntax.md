@@ -4,13 +4,13 @@ parse(Template):
 » Template [text]
 « Tree [list: “template”]
 
-		Template.splitAt: “PANEL {…}\n”
-			Before » Panel [text]
-			Capture » Header [text]
-			After » Remainder [text]
+	Template.splitAt: “PANEL {…}\n”
+		Before » Panel [text]
+		Capture » Header [text]
+		After » Remainder [text]
 
-		Panel.parse: Header » Tree.add:
-		Remainder.parse(Template): » Tree.join:
+	Panel.parse: Header » Tree.add:
+	Remainder.parse(Template): » Tree.join:
 
 
 parse(Panel):
@@ -19,14 +19,14 @@ parse(Panel):
 » Header [text]
 « Tree [list: “panel”]
 
-		Header.parse: » Tree.metadata.join:
+	Header.parse: » Tree.metadata.join:
 
-		Panel.splitAt: “\n”
-			Before » Line [text]
-			After » Remainder [text]
+	Panel.splitAt: “\n”
+		Before » Line [text]
+		After » Remainder [text]
 
-		Line.parse: » Tree.add:
-		Remainder.parse(Panel): » Tree.join:
+	Line.parse: » Tree.add:
+	Remainder.parse(Panel): » Tree.join:
 
 
 parse(Header):
@@ -34,12 +34,12 @@ parse(Header):
 » Header [text]
 « Options [list]
 
-		Header.splitAt: “, ”
-			Before » Option [text]
-			After » Remainder [text]
+	Header.splitAt: “, ”
+		Before » Option [text]
+		After » Remainder [text]
 
-		Option.parse: » Options.add:
-		Remainder.parse(Header): » Options.join:
+	Option.parse: » Options.add:
+	Remainder.parse(Header): » Options.join:
 
 
 parse(Option):
@@ -47,11 +47,11 @@ parse(Option):
 » Option [text]
 « Setting [pair]
 
-		Option.splitAt: ”=”
-			Before » Key [text]
-			After » Value [text]
+	Option.splitAt: ”=”
+		Before » Key [text]
+		After » Value [text]
 
-		{ Key = Value } » Setting
+	{ Key = Value } » Setting
 
 
 parse(Line):
@@ -60,28 +60,28 @@ parse(Line):
 « Tree [list: “par”]
 
 First parse line options at the end	-- separated like this
-		Line.splitAt: “\t-- ”
-			Before » Content [text]
-			After » Header [text]
+	Line.splitAt: “\t-- ”
+		Before » Content [text]
+		After » Header [text]
 
-		Header.parse: » Tree.metadata.join:
+	Header.parse: » Tree.metadata.join:
 
 Next, parse brackets. No nesting or overlapping.
 
 Step 1: “Be fore [ Inner ] After” → { “Be”, “fore” }, “Inn er ] After”
-		Content.splitAt: “[” or “_” or “**”
-			Before » splitWords: { Label = “Word” }
-				» Tree.join:
-			Split » Bracket [text]
-			After » Tail [text]
+	Content.splitAt: “[” or “_” or “**”
+		Before » splitWords: { Label = “Word” }
+			» Tree.join:
+		Split » Bracket [text]
+		After » Tail [text]
 
 Step 2: { “Be”, “fore” }, “Inn er ] After” → { “Be”, “fore”, Variable = “Inn er” } + { After.parsed }
-		Tail.splitAt: Bracket.inverse:
-			Before » Inner [text]
-			After » Remainder [text]
-		
-		Inner.parse: Bracket » Tree.join:
-		Remainder.parse(Line): » Tree.join:
+	Tail.splitAt: Bracket.inverse:
+		Before » Inner [text]
+		After » Remainder [text]
+	
+	Inner.parse: Bracket » Tree.join:
+	Remainder.parse(Line): » Tree.join:
 
 
 inverse(Bracket):
@@ -89,14 +89,9 @@ inverse(Bracket):
 » Bracket [text]
 « Inverse [text]
 
-		* Bracket == “[”
-		⇒ “]”
-
-		* Bracket == “_”
-		⇒ “_”
-
-		* Bracket == “**”
-		⇒ “**”
+	(Bracket == “[”) ⇒ “]”
+	(Bracket == “_”) ⇒ “_”
+	(Bracket == “**”) ⇒ “**”
 
 
 parse(Inner):
@@ -105,14 +100,9 @@ parse(Inner):
 » Bracket [text]
 « Result [list]
 
-		* Bracket == “[”
-		⇒ { Bracket.label: = Inner }
-
-		* Bracket == “_”
-		⇒ splitWords: { Block = Inner, Label = Bracket.label: }
-
-		* Bracket == “**”
-		⇒ splitWords: { Block = Inner, Label = Bracket.label: }
+	(Bracket == “[”) ⇒ { Bracket.label: = Inner }
+	(Bracket == “_”) ⇒ splitWords: { Block = Inner, Label = Bracket.label: }
+	(Bracket == “**”) ⇒ splitWords: { Block = Inner, Label = Bracket.label: }
 
 
 label(Bracket):
@@ -120,14 +110,9 @@ label(Bracket):
 » Bracket [text]
 « Label [text]
 
-		* Bracket == “[”
-		⇒ “Variable”
-
-		* Bracket == “_”
-		⇒ “Italics”
-
-		* Bracket == “**”
-		⇒ “Bold”
+	(Bracket == “[”) ⇒ “Variable”
+	(Bracket == “_”) ⇒ “Italics”
+	(Bracket == “**”) ⇒ “Bold”
 
 
 splitWords:
@@ -136,9 +121,9 @@ splitWords:
 » Label [text]
 « Words [list]
 
-		Block.splitAt: “ ”
-			Before » Word [text]
-			After » After [text]
+	Block.splitAt: “ ”
+		Before » Word [text]
+		After » After [text]
 
-		{ Label = Word } » Words.add:
-		splitWords: { Block = After, Label } » Words.join:
+	{ Label = Word } » Words.add:
+	splitWords: { Block = After, Label } » Words.join:
