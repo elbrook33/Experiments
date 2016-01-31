@@ -44,10 +44,16 @@ parse (Panel)
 				OuterPre.split: “\n”
 					» map: (Line → Line.parse)
 						» Tree.join
+
 				BracketLabel=(join:
 					— InnerAParsed
 					— InnerBUnparsed.split: “\n” » map: Line → Line.parse)
-						» Tree.add
+						» BracketContent [list]
+
+				parse: Header=BlockHeader
+					» BracketContent.metadata.join
+
+				BracketContent » Tree.add
 				OuterPost » Remainder)
 			o otherwise ⇒
 				Panel » Remainder
