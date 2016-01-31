@@ -3,6 +3,7 @@ parse(Template):
 =============
 ## In
 * Template [text]
+
 ## Out
 * Tree [list: “template”]
 
@@ -20,6 +21,7 @@ parse(Panel):
 ## In
 * Panel [text]
 * Header [text]
+
 ## Out
 * Tree [list: “panel”]	
 
