@@ -1,8 +1,10 @@
 
 parse(Template):
 =============
-» Template [text]	
-« Tree [list: “template”]	
+## In
+* Template [text]
+## Out
+* Tree [list: “template”]
 
 	Template.splitAt: “PANEL {…}\n”
 		Before » Panel [text]
@@ -15,9 +17,11 @@ parse(Template):
 
 parse(Panel):
 ==========
-» Panel [text]	
-» Header [text]	
-« Tree [list: “panel”]	
+## In
+* Panel [text]
+* Header [text]
+## Out
+* Tree [list: “panel”]	
 
 	Header.parse: » Tree.metadata.join:
 
