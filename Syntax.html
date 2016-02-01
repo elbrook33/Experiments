@@ -1,0 +1,312 @@
+<!DOCTYPE HTML>
+<html>
+ <head>
+  <meta charset="utf-8"/>
+  <title>
+   Made with Remarkable!
+  </title>
+  <link href="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.1/styles/github.min.css" rel="stylesheet"/>
+  <style type="text/css">
+   html{font-size:100%;overflow-y:scroll;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}body{color:#444;font-family:Georgia,Palatino,"Palatino Linotype",Times,"Times New Roman",serif;font-size:12px;line-height:1.5em;padding:1em;margin:auto;max-width:42em;background:#fefefe}a{color:#0645ad;text-decoration:none}a:visited{color:#0b0080}a:hover{color:#06e}a:active{color:#faa700}a:focus{outline:dotted thin}a:active,a:hover{outline:0}::-moz-selection{background:rgba(255,255,0,.3);color:#000}::selection{background:rgba(255,255,0,.3);color:#000}a::-moz-selection{background:rgba(255,255,0,.3);color:#0645ad}a::selection{background:rgba(255,255,0,.3);color:#0645ad}p{margin:1em 0}img{max-width:100%}h1,h2,h3,h4,h5,h6{font-weight:400;color:#111;line-height:1em}h4,h5,h6{font-weight:700}h1{font-size:2.5em}h2{font-size:2em}h3{font-size:1.5em}h4{font-size:1.2em}h5{font-size:1em}h6{font-size:.9em}blockquote{color:#666;margin:0;padding-left:3em;border-left:.5em #EEE solid}hr{display:block;height:2px;border:0;border-top:1px solid #aaa;border-bottom:1px solid #eee;margin:1em 0;padding:0}code,kbd,pre,samp{color:#000;font-family:monospace,monospace;font-size:.98em}pre{white-space:pre;white-space:pre-wrap;word-wrap:break-word}b,strong{font-weight:700}dfn{font-style:italic}ins{background:#ff9;color:#000;text-decoration:none}mark{background:#ff0;color:#000;font-style:italic;font-weight:700}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sup{top:-.5em}sub{bottom:-.25em}ol,ul{margin:1em 0;padding:0 0 0 2em}li p:last-child{margin:0}dd{margin:0 0 0 2em}img{border:0;-ms-interpolation-mode:bicubic;vertical-align:middle}table{border-collapse:collapse;border-spacing:0}td{vertical-align:top}@media only screen and (min-width:480px){body{font-size:14px}}@media only screen and (min-width:768px){body{font-size:16px}}@media print{*{background:0 0!important;color:#000!important;filter:none!important;-ms-filter:none!important}body{font-size:12pt;max-width:100%}a,a:visited{text-decoration:underline}hr{height:1px;border:0;border-bottom:1px solid #000}a[href]:after{content:" (" attr(href) ")"}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}blockquote,pre{border:1px solid #999;padding-right:1em;page-break-inside:avoid}img,tr{page-break-inside:avoid}img{max-width:100%!important}@page :left{margin:15mm 20mm 15mm 10mm}@page :right{margin:15mm 10mm 15mm 20mm}h2,h3,p{orphans:3;widows:3}h2,h3{page-break-after:avoid}}table{padding:0}table tr{border-top:1px solid #ccc;background-color:#fff;margin:0;padding:0}table tr:nth-child(2n){background-color:#aaa}table tr th{font-weight:700;border:1px solid #ccc;text-align:left;margin:0;padding:6px 13px}table tr td{border:1px solid #ccc;text-align:left;margin:0;padding:6px 13px}table tr td :first-child,table tr th :first-child{margin-top:0}table tr td:last-child,table tr th :last-child{margin-bottom:0}
+  </style>
+ </head>
+ <body>
+  <h1 id="parsetemplate">
+   ﻿parse(Template)
+  </h1>
+  <pre><code>» Template [text]
+» Header [text]
+
+« Tree [list]
+
+    Template.split:
+        — SplitterLine = “PANEL (…)¹”
+
+    Splits » mapEach:
+        — Panel [text] → (Panel.parse)
+
+    Results » mapEach:
+        — {Parsed [list], Tail [text]}
+            → Tail.parseLines » join: (Head = Parsed)
+
+    Results » Tree
+</code></pre>
+  <p>
+   Compiles to the following C code:
+  </p>
+  <pre><code class="c">list parseTemplate(text Template, text Header)
+{
+    list Tree = {0};
+
+    list Splits1 = split_SplitterLine(Template, "Panel (…)¹");
+    list Results1 = mapEach(Splits1, parseTemplate_InlineFn1);
+    list Results2 = mapEach(Results1, parseTemplate_InlineFn2);
+
+    Tree = Results2;
+    Tree = setKey(Tree, "Tree");
+
+    delete_list(Splits1);
+    delete_list(Results1);
+
+    return Tree;
+}
+item parseTemplate_InlineFn1(item Panel)
+{
+    return parse_Panel(Panel);
+}
+item parseTemplate_InlineFn2(list Couple)
+{
+    list Parsed = itemAt(Couple, 1, "list");
+    text Tail = itemAt(Couple, 2, "text");
+
+    item Result = {0};
+
+    list Parsed1 = parseLines(Tail);
+    list Joined1 = join_list(Parsed, Parsed1);
+
+    Result = Joined1;
+    Result = setKey(Result, "Result");
+
+    delete_list(Parsed1);
+
+    return Result;
+}
+</code></pre>
+  <h1 id="parsepanel">
+   parse(Panel)
+  </h1>
+  <pre><code>» Panel [text]
+« Tree [list]
+« Remainder [text]
+
+    parseHeader:
+        — Panel.metadata.“SplitterPre”.metadata.“Capture”
+
+    Options » Tree.metadata.join
+
+
+    Panel.splitOnce:
+        — SplitterLines =
+            — “(FOR)¹ (…)²”
+            — “(IF)¹ (…)²”
+
+    Found » StartFound [yes/no]
+    Before » OuterPre [text]
+    Capture » {BlockLabel [text], BlockHeader [text]}
+    After » InnerUnclosed [text]
+
+
+    InnerUnclosed.parsePanel
+
+    Tree » InnerAParsed [list]
+    Remainder » InnerBUnclosed [text]
+
+
+    InnerBUnclosed.splitOnce:
+        — SplitterLine = BlockLabel.inverse
+
+    Found » EndFound [yes/no]
+    Before » InnerBUnparsed [text]
+    After » OuterPost [text]
+
+
+    either:
+        o StartFound &amp;&amp; EndFound ⇒
+            ```
+            OuterPre.parseLines » Tree.join
+
+            InnerBUnparsed.parseLines » join: (Head = InnerAParsed)
+            (BracketLabel = Joined) » BracketContent [list]
+            BlockHeader.parseHeader » BracketContent.metadata.join
+
+            BracketContent » Tree.add
+            OuterPost » Remainder
+            ´´´
+
+        o otherwise ⇒
+            Panel » Remainder
+</code></pre>
+  <h1 id="parseheader">
+   parse(Header)
+  </h1>
+  <pre><code>» Header [text]
+« Options [list]
+
+    Header.split:
+        — Splitter = “, ”
+
+    Splits » mapEach:
+        — Option [text] → Option.parse
+
+    Result » Options
+</code></pre>
+  <h1 id="parseoption">
+   parse(Option)
+  </h1>
+  <pre><code>» Option [text]
+« Setting [text]
+</code></pre>
+  <p>
+   Create a key-value pair from “key=value” text.
+  </p>
+  <pre><code>    Option.splitOnce:
+        — Splitter = ”=”
+
+    Before » Key [text]
+    After » Value [text]
+
+    (Key = Value) » Setting
+</code></pre>
+  <h1 id="parselines">
+   parse(Lines)
+  </h1>
+  <pre><code>» Lines [text]
+« Parsed [list]
+
+    Line.split:
+        — Splitter = “\n”
+
+    Splits » mapEach:
+        — Line [text] → Line.parse
+
+    Results » Parsed
+</code></pre>
+  <h1 id="parseline">
+   parse(Line)
+  </h1>
+  <pre><code>» Line [text]
+« Tree [list “Par”]
+</code></pre>
+  <p>
+   First, parse line options at the end (separated by a tab and two hyphens).
+  </p>
+  <pre><code>    Line.splitOnce:
+        — Splitter = “\t-- ”
+
+    Before » Content [text]
+    After » Header [text]
+
+    Header.parse » Tree.metadata.join
+</code></pre>
+  <p>
+   Next, parse brackets. No nesting or overlapping.
+  </p>
+  <pre><code>    Content.splitOnce:
+        — Splitters = {“[”, “_”, “**”}
+
+    Before » splitWords: (Label = “Word”) » Tree.join
+    Splitter » Bracket [text]
+    After » Tail [text]
+
+
+    Tail.splitOnce:
+        — Splitter = Bracket.inverse
+
+    Before » Inner [text]
+    After » Remainder [text]
+
+
+    Inner.parse: Bracket » Tree.join
+    Remainder.parseLine » Tree.join
+</code></pre>
+  <h1 id="labelbracket">
+   label(Bracket)
+  </h1>
+  <pre><code>» Bracket [text]
+« Label [text]
+
+    either:
+        o Bracket == “[”    ⇒ “Variable”
+        o Bracket == “_”    ⇒ “Italics”
+        o Bracket == “**”   ⇒ “Bold”
+</code></pre>
+  <h1 id="inversebracket">
+   inverse(Bracket)
+  </h1>
+  <pre><code>» Bracket [text]
+« Inverse [text]
+
+    either:
+        o Bracket == “[”    ⇒ “]”
+        o Bracket == “_”    ⇒ “_”
+        o Bracket == “**”   ⇒ “**”
+</code></pre>
+  <h1 id="parseinner">
+   parse(Inner)
+  </h1>
+  <pre><code>» Inner [text]
+» Bracket [text]
+« Result [list]
+</code></pre>
+  <p>
+   Italics and bold text are split into words; variables aren’t.
+  </p>
+  <pre><code>    either:
+        o Bracket == “[”    ⇒ {(Bracket.label = Inner)}
+        o Bracket == “_”    ⇒ Inner.splitWords: (Label = Bracket.label)
+        o Bracket == “**”   ⇒ Inner.splitWords: (Label = Bracket.label)
+</code></pre>
+  <h1 id="splitwords">
+   splitWords
+  </h1>
+  <pre><code>» Block [text]
+» Label [text]
+« Words [list]
+
+    Block.split:
+        — Splitter = “ ”
+
+    Splitter » mapEach:
+        — Word [text] → (Label = Word)
+
+    Results » Words
+</code></pre>
+  <hr/>
+  <h1 id="mergetemplatewith">
+   merge(Template)With
+  </h1>
+  <pre><code>» Template [list]
+» Data [list]
+« Doc [list]
+
+    Template.mapEach:
+        — Panel [item] → (Panel.mergeWith: Data)
+
+    Results » Doc
+</code></pre>
+  <h1 id="mergepanelwith">
+   merge(Panel)With
+  </h1>
+  <pre><code>» Panel [list]
+» Data [list]
+« Merged [list]
+
+    Panel.mapEach:
+        — Par [item] → (Par.mergeWith: Data)
+
+    Results » Merged
+</code></pre>
+  <h1 id="mergeparwith">
+   merge(Par)With
+  </h1>
+  <pre><code>» Par [list]
+» Data [list]
+« Merged [list]
+
+    either:
+        o Par.key == “Par”  ⇒
+        o Par.key == “FOR”  ⇒
+        o Par.key == “IF”   ⇒
+</code></pre>
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.1/highlight.min.js">
+  </script>
+  <script>
+   hljs.initHighlightingOnLoad();
+  </script>
+  <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript">
+  </script>
+  <script type="text/javascript">
+   MathJax.Hub.Config({"showProcessingMessages" : false,"messageStyle" : "none","tex2jax": { inlineMath: [ [ "$", "$" ] ] }});
+  </script>
+ </body>
+</html>

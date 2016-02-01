@@ -1,0 +1,42 @@
+# Pass 1: Just parse the syntax. Don’t figure out types, even within the block.
+
+- fnDef:
+	name: parse
+	specifier: Template
+	parameters:
+		- {name: Template, type: text}
+		- {name: Header, type: text}
+	returns:
+		- {name: Tree, type: list}
+	body:
+		- const: {name: InlineConst1, type: text, value: PANEL (…)¹}
+		- var: {name: Inline1, type: ___}
+		- fnCall:
+			fn: split
+			parameters:
+				- {name: Template, type: ___}
+				- {name: Line, type: text, value: InlineConst1}
+			returns:
+				- {name: Inline1, type: ___}
+		- var: {name: Inline3, type: ___}
+		- fnDef:
+			name: InlineFn1
+			specifier: Panel
+			parameters:
+				- {name: Panel, type: ___}
+			returns:
+				- {name: Inline2, type: ___}
+		- fnCall:
+			fn: map
+			parameters:
+				- {name: Inline1, type: ___}
+				- {name: InlineFn1, type: fn}
+			returns:
+				- {name: Inline3, type: ___}
+		- var: {name: Temp, type: list}
+		- assign:
+			source: {name: Inline3, type: ___}
+			destination: {name: Temp, type: list}
+
+# Pass 2: Fill in the blanks of types within the block.
+# Pass 3: Fill in the blanks of types from outside the block.
